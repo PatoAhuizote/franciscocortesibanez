@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nombre Apellido | Perfil</title>
+  <style>
+    :root { --texto: #222; --fondo: #fafafa; --acento: #1f4e79; --gris: #666; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif;
+           color: var(--texto); background: var(--fondo); line-height: 1.6; }
+    nav { background: var(--acento); padding: 14px 20px; }
+    nav a { color: #fff; text-decoration: none; margin-right: 20px; font-family: Arial, sans-serif; }
+    nav a:hover { text-decoration: underline; }
+    main { max-width: 800px; margin: 0 auto; padding: 30px 20px; }
+    h1 { margin-bottom: 0; color: var(--acento); }
+    .subtitulo { color: var(--gris); margin-top: 4px; }
+    h2 { border-bottom: 2px solid var(--acento); padding-bottom: 4px; margin-top: 40px; color: var(--acento); }
+    .item { margin-bottom: 18px; }
+    .fecha { color: var(--gris); font-size: 0.9em; }
+    a { color: var(--acento); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Perfil</a>
+    <a href="investigacion.html">Investigación</a>
+  </nav>
+
+  <main>
+    <h1>Nombre Apellido</h1>
+    <p class="subtitulo">Tu cargo o área de investigación · Tu institución</p>
+
+    <h2>Sobre mí</h2>
+    <p>Aquí va una breve descripción tuya de dos o tres líneas.</p>
+
+    <h2>Formación</h2>
+    <div class="item">
+      <strong>Doctorado en ...</strong><br>
+      Universidad ... <span class="fecha">(2015–2019)</span>
+    </div>
+
+    <h2>Trayectoria</h2>
+    <div class="item">
+      <strong>Puesto o cargo</strong><br>
+      Institución <span class="fecha">(2020–actualidad)</span>
+    </div>
+
+    <h2>Contacto</h2>
+    <p>Correo: <a href="mailto:correo@ejemplo.com">correo@ejemplo.com</a></p>
+  </main>
+</body>
+</html>
