@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Cancer incidence in Germany – interactive prototype (EXAMPLE DATA)</title>
+  <style>
+    :root { --ink:#1b2733; --muted:#5a6875; --bg:#f7f9fa; --line:#d5dde3; --accent:#0f5c6e; --warn:#ffd24d; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; line-height:1.5; }
+    a { color:var(--accent); }
+    :focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+    .warn { background:var(--warn); color:#2b2100; text-align:center; padding:10px 16px; font-weight:700; letter-spacing:.02em; }
+    .top { max-width:1100px; margin:0 auto; padding:14px 20px; border-bottom:1px solid var(--line); }
+    .top a { text-decoration:none; color:var(--ink); }
+    main { max-width:1100px; margin:0 auto; padding:24px 20px 60px; }
+    h1 { font-family:Georgia,"Times New Roman",serif; font-size:1.8rem; margin:0 0 4px; line-height:1.2; }
+    .sub { color:var(--muted); margin:0 0 20px; }
+    .controls { display:flex; flex-wrap:wrap; gap:14px 22px; margin-bottom:22px; }
+    .controls label { display:flex; flex-direction:column; font-size:.8rem; color:var(--muted); gap:3px; }
+    select { font:inherit; font-size:.95rem; padding:6px 8px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--ink); min-width:150px; }
+    .grid { display:grid; grid-template-columns:minmax(260px,380px) 1fr; gap:28px; align-items:start; }
+    @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+    .mapbox { position:relative; background:#fff; border:1px solid var(--line); border-radius:6px; padding:12px; }
+    .mapbox svg { width:100%; height:auto; display:block; }
+    #de { transition:fill .35s ease; stroke:#fff; stroke-width:.8; }
+    .wm { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;
+          font-size:2.6rem; font-weight:800; color:rgba(160,30,30,.16); transform:rotate(-28deg); text-align:center; line-height:1.1; }
+    .readout { margin-top:10px; }
+    .big { font-family:Georgia,serif; font-size:2.6rem; line-height:1; }
+    .unit { color:var(--muted); font-size:.9rem; }
+    .tag { display:inline-block; font-size:.75rem; font-weight:700; padding:2px 8px; border-radius:3px; margin-left:8px; vertical-align:middle; }
+    .tag.obs { background:#dcebf0; color:#0b4452; } .tag.proj { background:#ece6f6; color:#4a2d82; }
+    .legend { margin-top:12px; font-size:.8rem; color:var(--muted); }
+    .bar { height:10px; border-radius:5px; margin:4px 0; }
+    .legend div.r { display:flex; justify-content:space-between; }
+    .yr { display:flex; align-items:center; gap:12px; margin-top:16px; }
+    .yr input[type=range] { flex:1; accent-color:var(--accent); }
+    .yr output { font-family:Georgia,serif; font-size:1.6rem; min-width:3.2ch; }
+    button.play { font:inherit; padding:6px 14px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:4px; cursor:pointer; }
+    .chart { background:#fff; border:1px solid var(--line); border-radius:6px; padding:14px; position:relative; }
+    .chart h2 { font-size:1rem; margin:0 0 4px; }
+    .chart svg { width:100%; height:auto; display:block; cursor:pointer; }
+    .chart .wm { font-size:2rem; }
+    .note { font-size:.85rem; color:var(--muted); margin-top:18px; }
+    .sr { position:absolute; left:-9999px; }
+  </style>
+</head>
+<body>
+  <div class="warn" role="note">EXAMPLE DATA – FICTITIOUS VALUES. These are NOT real incidence figures. For testing the interface only.</div>
+  <div class="top"><a href="index.html">← Back to profile</a></div>
+
+  <main>
+    <h1>Cancer incidence in Germany, 2015–2035</h1>
+    <p class="sub" id="desc"></p>
+
+    <div class="controls">
+      <label>Indicator
+        <select id="ind"><option value="crude">Crude rate</option><option value="std">Age-standardised rate</option></select></label>
+      <label>Sex
+        <select id="sex"><option value="total">Total</option><option value="female">Women</option><option value="male">Men</option></select></label>
+      <label>Age group
+        <select id="age"></select></label>
+      <label>Cancer type
+        <select id="site"><option value="all">All cancers</option><option value="lung">Lung</option><option value="crc">Colorectal</option></select></label>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="mapbox">
+          <svg viewBox="0 0 400 540" role="img" aria-label="Map of Germany coloured by the selected value"><path id="de" d="M160.1,522.9L152.5,517.7L145.2,512.7L142.8,512.7L132.0,513.7L131.7,513.3L129.9,510.4L128.2,509.5L127.2,510.0L126.5,510.8L125.4,510.7L120.6,506.1L118.6,505.4L115.8,506.0L112.6,508.5L111.2,511.5L111.6,513.3L113.3,514.0L117.7,513.5L118.3,514.0L118.5,515.0L118.0,515.9L114.4,516.7L113.4,517.9L112.4,518.2L111.7,518.3L107.9,517.1L102.2,517.1L97.7,519.3L90.4,520.1L80.4,519.7L76.8,518.1L74.6,517.2L73.0,512.5L73.4,505.6L75.8,496.4L76.5,489.7L75.4,485.4L76.8,479.0L80.7,470.4L83.3,461.4L84.6,451.9L86.5,445.7L90.2,441.4L99.0,429.2L99.7,428.3L99.5,422.3L97.1,421.4L93.6,419.7L84.8,417.5L76.6,416.2L72.8,414.5L69.6,409.9L67.5,409.8L63.6,411.5L58.6,412.6L55.0,411.6L52.8,411.8L51.5,412.6L50.9,411.9L50.0,408.0L48.1,406.9L45.1,406.1L43.3,406.4L42.1,408.4L40.1,409.8L38.3,409.3L32.8,400.3L31.3,398.3L31.0,396.4L29.6,393.1L26.2,389.7L22.9,388.7L21.3,389.0L21.4,384.9L22.7,378.8L24.0,375.7L25.6,373.1L27.4,371.3L27.8,368.1L27.5,365.0L25.5,364.6L20.4,362.3L17.4,359.9L15.2,356.9L12.3,352.8L11.0,348.7L11.0,344.5L11.3,342.7L11.5,341.4L13.9,334.9L22.1,329.1L21.2,323.3L21.1,319.7L19.1,317.4L15.1,316.4L14.0,314.8L13.6,313.2L16.5,309.7L13.0,306.8L11.4,303.9L6.5,300.2L6.0,299.0L8.3,288.3L6.5,285.1L4.3,283.5L1.6,282.8L0.4,281.3L0.0,279.6L0.5,278.5L3.6,278.8L4.5,277.7L11.9,271.4L12.2,270.2L11.2,269.5L9.8,269.2L9.5,267.9L9.5,266.1L13.5,257.0L14.6,253.2L14.9,250.4L14.7,247.7L12.4,243.5L10.2,240.1L10.1,237.4L8.5,236.0L4.0,228.8L4.0,226.0L6.6,223.8L10.1,222.4L11.3,221.3L13.5,220.5L19.2,222.6L21.8,224.4L22.5,224.1L24.8,222.1L28.8,222.4L38.6,218.4L40.1,216.5L41.2,214.5L41.3,213.6L37.5,209.8L37.4,208.3L37.9,206.7L38.9,205.4L41.2,204.5L43.6,202.8L48.9,198.0L50.8,193.8L51.3,189.3L51.4,185.9L50.0,183.2L48.5,181.4L46.5,181.7L42.6,181.6L38.9,180.1L36.9,177.6L36.4,175.5L37.3,174.1L37.6,172.5L37.0,170.8L37.3,169.4L38.9,168.3L50.5,168.3L51.3,167.1L52.1,160.6L55.0,150.7L57.7,145.2L58.2,142.9L58.1,129.9L58.5,123.3L56.5,120.2L52.2,116.8L53.1,109.7L54.6,104.2L58.9,97.4L62.4,95.6L77.4,94.5L94.0,94.9L100.9,105.2L98.3,110.4L102.3,112.9L104.3,112.0L105.8,107.4L106.7,102.3L108.1,100.8L113.3,104.6L115.1,107.2L115.2,115.5L117.1,104.2L115.7,96.3L116.6,88.7L118.7,84.7L120.6,82.1L132.8,84.9L146.2,83.5L151.3,86.4L162.8,101.2L166.6,103.6L171.5,104.4L164.8,101.2L150.9,83.2L146.7,81.0L140.3,80.3L136.3,78.6L133.8,75.9L133.0,73.5L133.2,55.4L130.8,52.7L127.6,51.7L125.7,53.0L121.7,53.0L120.9,48.9L121.9,45.9L129.9,43.8L135.1,41.0L135.4,36.1L132.0,32.3L128.1,25.2L123.4,18.5L122.8,10.8L122.9,10.8L131.0,10.9L133.0,11.2L145.4,14.9L148.4,17.4L152.2,17.5L159.0,15.1L164.1,14.1L166.1,15.6L168.9,16.2L169.5,16.2L169.8,17.5L176.2,19.3L178.9,22.2L181.9,26.7L182.2,33.1L178.3,37.8L175.2,40.7L187.2,39.6L188.4,42.2L190.2,45.1L196.7,43.1L212.9,51.5L222.7,47.4L225.2,47.2L227.4,54.0L225.0,60.9L216.3,68.3L218.2,72.8L221.0,73.8L229.1,72.8L242.0,77.3L244.7,75.9L255.2,65.6L259.4,63.4L273.1,61.8L275.6,57.8L281.2,53.8L284.8,49.4L293.4,41.0L302.3,42.5L307.5,44.1L313.2,44.9L318.4,53.9L331.5,63.7L343.6,62.8L347.8,72.2L349.7,83.6L353.4,87.3L356.7,89.6L366.5,92.1L366.9,92.2L367.2,93.8L367.8,99.5L368.6,104.3L373.7,123.2L373.6,127.8L373.5,129.1L371.7,135.5L368.4,141.0L364.1,144.1L361.7,147.5L361.2,151.3L366.7,158.0L378.1,167.5L382.7,175.6L380.5,182.3L379.8,187.3L380.7,190.5L382.5,193.0L385.3,194.9L386.4,197.9L385.8,201.9L386.4,204.6L388.5,206.6L388.3,207.4L387.3,210.1L385.9,215.2L385.1,218.9L381.9,223.9L382.9,228.2L385.4,233.2L387.3,235.7L387.9,238.1L386.7,243.8L387.3,245.3L395.2,249.5L396.5,251.4L397.2,255.5L400.0,264.1L397.7,275.1L395.7,281.1L391.2,290.6L390.9,291.4L390.4,292.6L389.1,294.3L387.2,294.5L384.3,293.3L382.4,291.7L382.8,287.6L381.6,287.3L380.0,284.8L379.4,282.1L377.8,281.0L371.6,279.8L369.6,279.0L368.0,279.6L366.8,281.5L367.5,283.3L368.7,285.0L372.1,287.6L371.7,288.7L364.4,291.3L359.8,294.0L355.5,295.5L351.2,298.2L342.6,301.3L336.2,302.2L334.9,303.0L332.6,308.2L331.0,309.3L329.5,308.8L328.3,307.9L326.8,308.6L325.3,310.4L323.7,311.1L322.3,311.0L319.8,315.6L312.6,317.0L311.8,319.4L310.5,322.2L309.4,322.9L306.2,321.8L301.7,321.2L299.1,322.7L296.0,323.5L292.2,323.8L288.0,326.8L283.9,332.1L281.6,336.8L280.4,338.5L278.4,334.1L275.9,331.0L274.1,329.5L272.6,329.5L272.2,330.1L272.2,332.4L273.8,336.2L275.9,338.9L276.2,340.8L277.3,344.3L280.3,348.1L285.0,351.2L288.2,354.1L290.6,358.3L290.6,359.6L290.0,361.3L288.9,362.8L287.9,364.9L285.3,369.1L286.1,371.0L288.2,373.3L290.1,376.1L292.5,380.6L295.9,388.4L298.0,391.7L300.9,395.0L303.8,397.6L308.3,397.5L313.0,402.4L318.1,409.5L321.9,412.7L324.5,413.7L326.7,416.2L328.7,419.9L329.5,422.0L331.2,423.5L335.8,423.3L341.8,429.0L345.6,433.2L347.5,436.6L347.0,438.0L346.8,442.2L346.8,446.7L346.2,449.1L343.5,452.2L342.2,452.9L341.4,453.6L333.2,449.5L332.5,450.2L332.0,450.7L329.8,462.5L328.3,464.8L326.0,466.9L321.3,468.9L318.1,469.7L315.5,470.8L307.5,475.7L303.8,478.7L301.5,482.4L301.5,484.6L305.4,490.9L309.9,497.4L309.9,503.2L307.9,507.5L307.5,509.2L308.8,509.8L311.3,510.0L313.4,510.8L314.3,513.8L314.0,519.1L313.3,524.0L312.6,526.1L310.5,526.2L306.6,524.1L303.6,521.6L302.4,520.1L302.4,518.3L303.0,517.1L301.9,514.9L298.2,512.8L294.2,513.7L291.3,515.1L289.3,515.0L287.3,513.0L284.1,511.5L280.0,510.5L277.4,509.4L276.9,510.0L277.2,514.4L276.4,516.3L255.9,518.8L249.6,521.1L245.1,524.1L241.7,525.4L240.9,527.3L237.6,529.8L233.8,530.5L232.9,529.7L230.5,530.9L226.4,532.0L223.7,531.6L222.5,529.6L220.0,526.6L218.9,524.5L219.0,523.1L213.3,522.9L209.7,521.3L202.0,521.6L200.1,521.0L199.7,521.7L198.6,530.3L197.0,533.8L194.6,537.5L191.4,539.5L188.9,539.9L189.0,537.2L189.7,534.0L187.8,533.3L185.1,532.9L183.8,531.9L184.2,529.5L183.5,528.1L182.4,526.4L179.7,524.2L173.9,520.9L169.9,519.3L168.5,521.0L165.7,522.8L161.2,522.2L160.1,522.9ZM342.9,46.9L344.0,51.6L342.8,54.0L337.9,50.0L333.0,50.1L330.0,56.2L327.8,56.4L320.2,50.9L319.0,48.2L318.8,45.9L319.8,38.2L319.6,35.7L322.0,33.0L322.4,29.2L326.6,25.1L330.4,24.9L331.6,28.4L333.4,30.8L339.7,33.4L340.6,34.6L341.2,36.3L338.3,39.6L337.3,41.3L338.2,44.0L342.9,46.9ZM364.8,76.9L364.3,79.1L364.9,82.4L363.1,82.2L357.7,83.0L352.4,81.9L351.3,77.7L352.2,73.7L350.0,71.0L348.1,69.3L347.8,67.0L348.1,64.6L357.3,71.1L364.8,76.9ZM236.9,44.5L230.2,44.6L227.7,41.8L225.1,41.1L226.5,37.7L228.3,36.5L234.8,38.7L236.8,43.1L236.9,44.5ZM107.0,18.9L106.0,20.2L106.5,10.4L111.3,0.0L113.3,0.2L111.2,3.1L110.6,5.0L109.8,9.0L110.2,11.0L121.1,11.6L119.8,13.4L108.7,14.7L107.0,18.9ZM119.2,24.0L117.5,25.7L113.4,25.5L111.1,23.9L111.8,22.2L114.0,20.9L115.8,20.7L118.6,21.5L119.2,24.0Z"/></svg>
+          <div class="wm" aria-hidden="true">EXAMPLE<br>DATA</div>
+        </div>
+        <div class="readout" aria-live="polite">
+          <span class="big" id="val"></span><span class="tag" id="tag"></span>
+          <div class="unit" id="unit"></div>
+        </div>
+        <div class="legend"><div class="bar" id="bar"></div><div class="r"><span id="lo"></span><span id="hi"></span></div></div>
+        <div class="yr">
+          <button class="play" id="play" type="button">Play</button>
+          <input type="range" id="year" min="2015" max="2035" step="1" value="2015" aria-label="Year">
+          <output id="yout" for="year">2015</output>
+        </div>
+      </div>
+
+      <div class="chart">
+        <h2 id="ct"></h2>
+        <svg id="ch" viewBox="0 0 600 340" role="img" aria-label="Line chart of the selected rate from 2015 to 2035"></svg>
+        <div class="wm" aria-hidden="true">EXAMPLE DATA</div>
+      </div>
+    </div>
+
+    <p class="note">Prototype layout only. All numbers are generated by a simple formula in this page and carry no scientific meaning. Observed/projection split (projections from 2025) is shown to test the design; real data will replace the generator.</p>
+  </main>
+
+  <script>
+    var Y0 = 2015, Y1 = 2035, PROJ = 2025;
+    var AGES = ["50–54","55–59","60–64","65–69","70–74"];
+    var BASE = [300,480,720,1020,1330];
+    var SEXL = {total:"both sexes", female:"women", male:"men"};
+    var SITEL = {all:"All cancers", lung:"Lung", crc:"Colorectal"};
+    var $ = function (id) { return document.getElementById(id); };
+
+    // EXAMPLE generator (fictitious)
+    function val(y, sex, age, site, ind) {
+      var t = y - Y0;
+      var sx = {total:1, female:.86, male:1.14}[sex], st = {all:1, lung:.13, crc:.12}[site];
+      function f(i) { return BASE[i] * (1 + .004*t + .025*Math.sin(t/3 + i)); }
+      var v;
+      if (age === "all") { v = 0; for (var i = 0; i < 5; i++) v += f(i); v /= 5; }
+      else v = f(+age);
+      if (ind === "std") v *= (.93 - .004*t);
+      return v * sx * st;
+    }
+
+    var ageSel = $("age");
+    ageSel.innerHTML = '<option value="all">50–74 (all)</option>' + AGES.map(function (a, i) { return '<option value="' + i + '">' + a + '</option>'; }).join("");
+
+    function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+    function color(t) { return "rgb(" + lerp(222,15,t) + "," + lerp(234,61,t) + "," + lerp(242,87,t) + ")"; }
+    $("bar").style.background = "linear-gradient(90deg," + color(0) + "," + color(1) + ")";
+
+    function sel() { return {ind:$("ind").value, sex:$("sex").value, age:$("age").value, site:$("site").value}; }
+    function series(s, sex) { var o = []; for (var y = Y0; y <= Y1; y++) o.push(val(y, sex, s.age, s.site, s.ind)); return o; }
+
+    function sync() {
+      var std = $("ind").value === "std";
+      Array.prototype.forEach.call(ageSel.options, function (o) { o.disabled = std && o.value !== "all"; });
+      if (std) ageSel.value = "all";
+    }
+
+    function draw() {
+      sync();
+      var s = sel(), y = +$("year").value;
+      var ser = series(s, s.sex), all = ["total","female","male"].map(function (x) { return series(s, x); });
+      var flat = [].concat.apply([], all), lo = Math.min.apply(null, ser), hi = Math.max.apply(null, ser);
+      var v = ser[y - Y0], t = hi === lo ? 0 : (v - lo) / (hi - lo);
+      $("de").style.fill = color(t);
+      $("val").textContent = v.toFixed(1);
+      var isP = y >= PROJ;
+      $("tag").textContent = isP ? "Projection" : "Observed"; $("tag").className = "tag " + (isP ? "proj" : "obs");
+      var aTxt = s.age === "all" ? "ages 50–74" : "ages " + AGES[+s.age];
+      var kind = s.ind === "std" ? "age-standardised rate" : (s.age === "all" ? "crude rate" : "age-specific rate");
+      $("unit").textContent = "per 100,000 (example), " + y;
+      $("lo").textContent = lo.toFixed(0); $("hi").textContent = hi.toFixed(0);
+      $("yout").textContent = y;
+      $("desc").textContent = SITEL[s.site] + ", " + aTxt + ", " + SEXL[s.sex] + " – " + kind + " (EXAMPLE DATA).";
+      $("ct").textContent = "Trend 2015–2035: " + kind + " per 100,000";
+
+      // chart
+      var W = 600, H = 340, L = 52, R = 14, T = 16, B = 38, ymax = Math.ceil(Math.max.apply(null, flat) * 1.08 / 50) * 50;
+      function X(yr) { return L + (yr - Y0) / (Y1 - Y0) * (W - L - R); }
+      function Yp(v) { return T + (1 - v / ymax) * (H - T - B); }
+      var g = '<rect x="' + X(PROJ - .5) + '" y="' + T + '" width="' + (X(Y1) - X(PROJ - .5)) + '" height="' + (H - T - B) + '" fill="#ece6f6" opacity=".6"/>';
+      g += '<text x="' + (X(PROJ - .5) + 6) + '" y="' + (T + 14) + '" font-size="11" fill="#4a2d82">Projection →</text>';
+      for (var k = 0; k <= 4; k++) { var gv = ymax * k / 4, gy = Yp(gv);
+        g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '" stroke="#e3e9ed"/><text x="' + (L - 8) + '" y="' + (gy + 4) + '" font-size="11" text-anchor="end" fill="#5a6875">' + Math.round(gv) + '</text>'; }
+      [2015,2020,2025,2030,2035].forEach(function (yr) { g += '<text x="' + X(yr) + '" y="' + (H - 14) + '" font-size="11" text-anchor="middle" fill="#5a6875">' + yr + '</text>'; });
+      var cols = {total:"#0f5c6e", female:"#c0506a", male:"#3a6fb0"};
+      ["total","female","male"].forEach(function (sx, i) {
+        var d = all[i], on = sx === s.sex;
+        var pts = d.map(function (v2, j) { return [X(Y0 + j), Yp(v2)]; });
+        function pl(a, b) { return pts.slice(a, b).map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" "); }
+        var sw = on ? 3 : 1.5, op = on ? 1 : .55;
+        g += '<polyline points="' + pl(0, PROJ - Y0 + 1) + '" fill="none" stroke="' + cols[sx] + '" stroke-width="' + sw + '" opacity="' + op + '"/>';
+        g += '<polyline points="' + pl(PROJ - Y0, d.length) + '" fill="none" stroke="' + cols[sx] + '" stroke-width="' + sw + '" stroke-dasharray="6 4" opacity="' + op + '"/>';
+      });
+      g += '<line x1="' + X(y) + '" x2="' + X(y) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#1b2733" stroke-dasharray="2 3"/>';
+      g += '<circle cx="' + X(y) + '" cy="' + Yp(v) + '" r="5" fill="' + cols[s.sex] + '" stroke="#fff" stroke-width="2"/>';
+      g += '<g font-size="11"><text x="' + L + '" y="' + (H - 1) + '" fill="#0f5c6e">● Total</text><text x="' + (L + 60) + '" y="' + (H - 1) + '" fill="#c0506a">● Women</text><text x="' + (L + 132) + '" y="' + (H - 1) + '" fill="#3a6fb0">● Men</text></g>';
+      $("ch").innerHTML = g;
+      $("ch").dataset.l = L; $("ch").dataset.w = W - L - R;
+    }
+
+    ["ind","sex","age","site"].forEach(function (id) { $(id).addEventListener("change", draw); });
+    $("year").addEventListener("input", draw);
+    $("ch").addEventListener("click", function (e) {
+      var r = this.getBoundingClientRect(), sc = 600 / r.width, x = (e.clientX - r.left) * sc;
+      var yr = Math.round(Y0 + (x - 52) / (600 - 52 - 14) * (Y1 - Y0));
+      $("year").value = Math.min(Y1, Math.max(Y0, yr)); draw();
+    });
+    var timer = null;
+    $("play").addEventListener("click", function () {
+      if (timer) { clearInterval(timer); timer = null; this.textContent = "Play"; return; }
+      var b = this; b.textContent = "Pause";
+      if (+$("year").value >= Y1) $("year").value = Y0;
+      timer = setInterval(function () {
+        var y = +$("year").value + 1;
+        if (y > Y1) { clearInterval(timer); timer = null; b.textContent = "Play"; return; }
+        $("year").value = y; draw();
+      }, 650);
+    });
+    draw();
+  </script>
+</body>
+</html>
